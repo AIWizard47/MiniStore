@@ -12,7 +12,8 @@ if len(sys.argv) < 3:
 
 ACTION = sys.argv[1]
 TABLE = sys.argv[2]
-
+# print(f"ACTION: {ACTION}\n")
+# print(f"TABLE: {TABLE}\n")
 # ----------------------------
 # DIRECTORIES
 # ----------------------------
@@ -125,6 +126,7 @@ try:
 
     # 3️⃣ FIND (WHERE key=value)
     elif ACTION == "find":
+        print("FIND_ACTION_CALLED")
         if len(sys.argv) < 4 or "=" not in sys.argv[3]:
             print("INVALID_CONDITION")
             sys.exit(1)

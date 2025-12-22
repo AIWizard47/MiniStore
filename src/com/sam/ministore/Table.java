@@ -20,8 +20,8 @@ public class Table {
     }
 
     // AUTO ID + TYPE VALIDATION handled in Python
-    public void insert(String... values) {
-        PythonBridge.call(
+    public String insert(String... values) {
+        return PythonBridge.call(
             PYTHON,
             ENGINE,
             "insert",
@@ -31,8 +31,8 @@ public class Table {
     }
 
     // WHERE key=value
-    public void find(String condition) {
-        PythonBridge.call(
+    public String find(String condition) {
+        return PythonBridge.call(
             PYTHON,
             ENGINE,
             "find",

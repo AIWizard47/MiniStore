@@ -7,7 +7,7 @@ public class PythonBridge {
 
     public static String call(String... args) {
         try {
-            System.out.println("Calling Python: " + String.join(" ", args));
+            // System.out.println("Calling Python: " + String.join(" ", args));
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.redirectErrorStream(true);
 
