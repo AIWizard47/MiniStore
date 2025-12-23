@@ -101,6 +101,7 @@ public class Table {
 
         data.add(row);
         DataStore.save(name, data);
+        IndexStore.add(name, row);
         return "ROW_INSERTED";
     }
 
@@ -109,22 +110,32 @@ public class Table {
         if (p.length != 2) return null;
 
         String key = p[0].trim();
-        String raw = p[1].trim();
+        String rawValue = p[1].trim();
 
-        String type = getColumnType(key);
-        if (type == null) return null;
-
-        Object value = cast(raw, type);
-
-        List<Map<String, Object>> data = DataStore.load(name);
-        StringBuilder result = new StringBuilder();
-
-        for (Map<String, Object> row : data) {
-            if (Objects.equals(row.get(key), value)) {
-                result.append(row).append("\n");
+        // 🔹 detect type from schema
+        Object value = rawValue;
+        for (Map<String,String> col : schema) {
+            if (col.get("name").equals(key)) {
+                value = cast(rawValue, col.get("type"));
+                break;
             }
         }
-        return result.length() == 0 ? null : result.toString();
+
+        Map<String, Map<Object, List<Integer>>> index =
+                IndexStore.load(name);
+
+        if (!index.containsKey(key)) return null;
+
+        List<Integer> ids = index.get(key).get(value);
+        if (ids == null) return null;
+
+        List<Map<String,Object>> data = DataStore.load(name);
+        StringBuilder out = new StringBuilder();
+
+        for (Integer id : ids) {
+            out.append(data.get(id - 1)).append("\n");
+        }
+        return out.toString();
     }
 
     public boolean delete(String condition) {
