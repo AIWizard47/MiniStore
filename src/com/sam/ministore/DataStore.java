@@ -8,7 +8,7 @@ class DataStore {
     static File dataFile(String table) {
         File dir = new File(Paths.DATA);
         if (!dir.exists()) {
-            dir.mkdirs();   // ✅ FIX: create parent dirs
+            dir.mkdirs(); // ✅ ensure directory exists
         }
         return new File(dir, table + ".data");
     }
@@ -28,12 +28,20 @@ class DataStore {
 
     static void save(String table, List<Map<String, Object>> data) {
         File f = dataFile(table);
-
         try (ObjectOutputStream o =
                      new ObjectOutputStream(new FileOutputStream(f))) {
             o.writeObject(data);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // ✅ ADD THIS METHOD
+    static int nextId(String table) {
+        List<Map<String, Object>> data = load(table);
+        if (data.isEmpty()) return 1;
+
+        Object last = data.get(data.size() - 1).get("id");
+        return (last instanceof Integer) ? ((Integer) last + 1) : data.size() + 1;
     }
 }

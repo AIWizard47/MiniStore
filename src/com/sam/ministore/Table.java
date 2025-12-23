@@ -50,27 +50,52 @@ import java.util.*;
 public class Table {
 
     private final String name;
-    private final List<Map<String,String>> schema;
+    private final List<Map<String, String>> schema;
 
     public Table(String name, String... cols) {
         this.name = name;
-        SchemaManager.create(name, cols);
-        this.schema = SchemaManager.load(name);
+
+        // Load existing schema if present
+        List<Map<String, String>> existing = SchemaManager.load(name);
+
+        if (!existing.isEmpty()) {
+            // 🚫 Prevent schema modification
+            if (!SchemaManager.matches(existing, cols)) {
+                throw new RuntimeException(
+                    "Schema mismatch! Table '" + name + "' already exists."
+                );
+            }
+            this.schema = existing;
+        } else {
+            // Create schema only once
+            SchemaManager.create(name, cols);
+            this.schema = SchemaManager.load(name);
+        }
     }
 
     public String insert(String... values) {
-        List<Map<String,Object>> data = DataStore.load(name);
-        Map<String,Object> row = new HashMap<>();
+        List<Map<String, Object>> data = DataStore.load(name);
 
+        int expected = schema.size() - 1; // exclude id
+        if (values.length != expected) {
+            return "COLUMN_COUNT_MISMATCH";
+        }
+
+        Map<String, Object> row = new LinkedHashMap<>();
         int v = 0;
-        for (Map<String,String> col : schema) {
+
+        for (Map<String, String> col : schema) {
             String cname = col.get("name");
             String type = col.get("type");
 
-            if (cname.equals("id")) {
-                row.put("id", data.size() + 1);
+            if (cname.equalsIgnoreCase("id")) {
+                row.put("id", DataStore.nextId(name));
             } else {
-                row.put(cname, cast(values[v++], type));
+                Object parsed = cast(values[v++], type);
+                if (parsed == null) {
+                    return "TYPE_MISMATCH for column " + cname;
+                }
+                row.put(cname, parsed);
             }
         }
 
@@ -84,39 +109,36 @@ public class Table {
         if (p.length != 2) return null;
 
         String key = p[0].trim();
-        String value = p[1].trim().toLowerCase();
+        String raw = p[1].trim();
+
+        String type = getColumnType(key);
+        if (type == null) return null;
+
+        Object value = cast(raw, type);
 
         List<Map<String, Object>> data = DataStore.load(name);
         StringBuilder result = new StringBuilder();
 
         for (Map<String, Object> row : data) {
-            Object v = row.get(key);
-            if (v != null && v.toString().toLowerCase().equals(value)) {
-                result.append(row.toString()).append("\n");
+            if (Objects.equals(row.get(key), value)) {
+                result.append(row).append("\n");
             }
         }
         return result.length() == 0 ? null : result.toString();
     }
-    
 
-    private Object cast(String v, String type) {
-        switch (type.toLowerCase()) {
-            case "int": return Integer.parseInt(v);
-            case "float": return Float.parseFloat(v);
-            default: return v;
-        }
-    }
     public boolean delete(String condition) {
         String[] p = condition.split("=");
+        if (p.length != 2) return false;
+
         String key = p[0];
-        String val = p[1];
+        Object val = cast(p[1], getColumnType(key));
 
-        List<Map<String,Object>> data = DataStore.load(name);
+        List<Map<String, Object>> data = DataStore.load(name);
+        Iterator<Map<String, Object>> it = data.iterator();
 
-        Iterator<Map<String,Object>> it = data.iterator();
         while (it.hasNext()) {
-            Map<String,Object> row = it.next();
-            if (row.get(key).toString().equalsIgnoreCase(val)) {
+            if (Objects.equals(it.next().get(key), val)) {
                 it.remove();
                 DataStore.save(name, data);
                 return true;
@@ -127,18 +149,46 @@ public class Table {
 
     public boolean update(String condition, String field, String newValue) {
         String[] p = condition.split("=");
-        String key = p[0];
-        String val = p[1];
+        if (p.length != 2) return false;
 
-        List<Map<String,Object>> data = DataStore.load(name);
+        Object match = cast(p[1], getColumnType(p[0]));
+        Object updated = cast(newValue, getColumnType(field));
 
-        for (Map<String,Object> row : data) {
-            if (row.get(key).toString().equalsIgnoreCase(val)) {
-                row.put(field, newValue);
+        if (updated == null) return false;
+
+        List<Map<String, Object>> data = DataStore.load(name);
+
+        for (Map<String, Object> row : data) {
+            if (Objects.equals(row.get(p[0]), match)) {
+                row.put(field, updated);
                 DataStore.save(name, data);
                 return true;
             }
         }
         return false;
+    }
+
+    // ---------- helpers ----------
+
+    private String getColumnType(String name) {
+        for (Map<String, String> col : schema) {
+            if (col.get("name").equalsIgnoreCase(name)) {
+                return col.get("type");
+            }
+        }
+        return null;
+    }
+
+    private Object cast(String v, String type) {
+        try {
+            switch (type.toLowerCase()) {
+                case "int": return Integer.parseInt(v);
+                case "float": return Float.parseFloat(v);
+                case "bool": return Boolean.parseBoolean(v);
+                default: return v;
+            }
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

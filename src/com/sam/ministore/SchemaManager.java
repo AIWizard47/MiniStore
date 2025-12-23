@@ -5,6 +5,9 @@ import java.util.*;
 
 class SchemaManager {
 
+    static final Set<String> ALLOWED_TYPES = Set.of("INT", "STRING", "FLOAT", "BOOL");
+
+
     static File schemaFile(String table) {
         File dir = new File(Paths.SCHEMA);
         if (!dir.exists()) {
@@ -27,9 +30,22 @@ class SchemaManager {
             }
 
             String[] p = c.split(":");
+
+            String colName = p[0].trim();
+            String colType = p[1].trim().toUpperCase(); // IMPORTANT
+
+            // ✅ SCHEMA VALIDATION HAPPENS HERE
+            if (!ALLOWED_TYPES.contains(colType)) {
+                throw new RuntimeException(
+                    "Invalid column type '" + colType +
+                    "' for column '" + colName +
+                    "'. Allowed: " + ALLOWED_TYPES
+                );
+            }
+
             Map<String, String> col = new HashMap<>();
-            col.put("name", p[0].trim());
-            col.put("type", p[1].trim().toLowerCase());
+            col.put("name", colName);
+            col.put("type", colType);
             schema.add(col);
         }
 
@@ -62,4 +78,18 @@ class SchemaManager {
             throw new RuntimeException(e); // ✅ don't hide errors
         }
     }
+
+    static boolean matches(List<Map<String, String>> existing, String... cols) {
+        if (existing.size() != cols.length) return false;
+
+        for (int i = 0; i < cols.length; i++) {
+            String[] p = cols[i].split(":");
+            if (!existing.get(i).get("name").equalsIgnoreCase(p[0]) ||
+                !existing.get(i).get("type").equalsIgnoreCase(p[1])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
