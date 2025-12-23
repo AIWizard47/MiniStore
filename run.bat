@@ -3,8 +3,8 @@ echo ==============================
 echo Compiling Java files...
 echo ==============================
 
-REM Create output directory if not exists
-if not exist out mkdir out
+@REM REM Create output directory if not exists
+@REM if not exist out mkdir out
 
 REM Compile all Java files into out/
 javac -d out ^

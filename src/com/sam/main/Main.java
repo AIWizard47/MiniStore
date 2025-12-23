@@ -11,11 +11,12 @@ public class Main {
 
         // Creating a table by using Controller
         Table tb = Controller.createTable("Sam", "id:int","name:string", "number:string", "email:string");
-        // String result = tb.insert(  "Sambhav", "7759059001","sam@gmail.com");
+        // String result = tb.insert("Sambhav", "7759059001","sam@gmail.com");
         // System.out.println(result);
         String get = tb.find("id=2");
         System.out.println(get);
         // tb.find("name=Rahul");
+        // tb.delete("name=sambhav");
         String name = tb.find("name=Sambhav");
         System.out.println(name);
     }
