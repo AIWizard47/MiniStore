@@ -2,12 +2,12 @@ package com.sam.ministore;
 
 import java.util.*;
 
-public class Row {
+public final class Row {
 
     private final Map<String, Object> data;
 
-    public Row(Map<String, Object> data) {
-        this.data = data;
+    Row(Map<String, Object> source) {
+        this.data = Collections.unmodifiableMap(new LinkedHashMap<>(source));
     }
 
     public Object get(String key) {
@@ -15,13 +15,19 @@ public class Row {
     }
 
     public String getString(String key) {
-        Object v = data.get(key);
-        return v == null ? null : v.toString();
+        return (String) data.get(key);
     }
 
-    public Integer getInt(String key) {
-        Object v = data.get(key);
-        return v instanceof Integer ? (Integer) v : null;
+    public int getInt(String key) {
+        return (int) data.get(key);
+    }
+
+    public float getFloat(String key) {
+        return (float) data.get(key);
+    }
+
+    public boolean getBool(String key) {
+        return (boolean) data.get(key);
     }
 
     @Override
