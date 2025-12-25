@@ -8,12 +8,12 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, Mini Store!");
 
-        // tb.insert( "Sambhav", "7759059001");
-        // tb.insert( "Rahul", "9999999999");
+        // tb.insert( "Sambhav", "9842332440");
+        // tb.insert( "Rahul", "9842332440");
 
         // Creating a table by using Controller
         Table tb = new Table("Sam", "id:int","name:string", "number:string", "email:string");
-        // String result = tb.insert("Sambhav", "7759059001","sam@gmail.com");
+        // String result = tb.insert("Sambhav", "9842332440","sam@gmail.com");
         // System.out.println(result);
         Row get = tb.find("id=2");
         System.out.println(get);
