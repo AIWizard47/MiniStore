@@ -10,8 +10,8 @@ REM Compile all Java files into out/
 javac -d out ^
 src\com\sam\ministore\*.java ^
 src\com\sam\components\*.java ^
-src\com\sam\dataTypes\*.java ^
 src\com\sam\main\Main.java
+jar cfm ministore.jar MANIFEST.MF -C out .
 
 if errorlevel 1 (
     echo ❌ Compilation failed!

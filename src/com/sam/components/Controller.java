@@ -19,7 +19,7 @@ import com.sam.ministore.Table;
 
 public class Controller {
     
-    public static Table createTable(String name, String... cols) {
-        return new Table(name, cols);
+    public static Table createTable( String name, String... cols) {
+        return new Table( name, cols);
     }
 }

@@ -1,5 +1,7 @@
 package com.sam.main;
 import com.sam.components.Controller;
+// import com.sam.dataTypes.Sam;
+import com.sam.ministore.Row;
 import com.sam.ministore.Table;
 public class Main {
 
@@ -10,14 +12,15 @@ public class Main {
         // tb.insert( "Rahul", "9999999999");
 
         // Creating a table by using Controller
-        Table tb = Controller.createTable("Sam", "id:int","name:string", "number:string", "email:string");
+        Table tb = new Table("Sam", "id:int","name:string", "number:string", "email:string");
         // String result = tb.insert("Sambhav", "7759059001","sam@gmail.com");
         // System.out.println(result);
-        String get = tb.find("id=2");
+        Row get = tb.find("id=2");
         System.out.println(get);
         // tb.find("name=Rahul");
         // tb.delete("name=sambhav");
-        String name = tb.find("name=Sambhav");
-        System.out.println(name);
+        Row name = tb.find("name=Sambhav");
+        System.out.println(name.get("email"));
+        System.out.println(name.getInt("id"));
     }
 }
